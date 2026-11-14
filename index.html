@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="A child-friendly guided tour of the holographic principle. The pictures move; the mathematics is real.">
+<title>Holo Tour</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='8' fill='%2302060a' stroke='%23e5ff70' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css?v=1">
+<script type="module" src="splash.js?v=1"></script>
+</head>
+<body class="splash-body">
+<canvas id="sky" aria-hidden="true"></canvas>
+<div class="splash-top">
+  <a class="brand" href="tour.html">Holo <span>Tour</span></a>
+  <span class="version">v0.1 b20261114-2111 483f6f8</span>
+  <div class="language-flags" role="group" data-i18n-aria="languages" aria-label="Choose a language">
+    <button type="button" data-language="en" aria-pressed="true"><span aria-hidden="true">🇬🇧</span> <span class="language-name">English (UK)</span></button>
+    <button type="button" data-language="de" aria-pressed="false"><span aria-hidden="true">🇩🇪</span> <span class="language-name">German</span></button>
+    <button type="button" data-language="es" aria-pressed="false"><span aria-hidden="true">🇪🇸</span> <span class="language-name">Spanish</span></button>
+    <button type="button" data-language="fr" aria-pressed="false"><span aria-hidden="true">🇫🇷</span> <span class="language-name">French</span></button>
+  </div>
+  <button type="button" id="sound-toggle" class="reset" aria-pressed="false">Sound off</button>
+</div>
+<a class="enter" id="enter" href="tour.html" data-i18n-aria="splashAccess" aria-label="Enter the tour">
+  <h1 data-i18n="splashTitle">The holographic principle</h1>
+  <p data-i18n="splashLead">A short tour with pictures you can move.</p>
+  <p class="hint-line" data-i18n="splashHint">Click or tap anywhere to begin</p>
+</a>
+<div id="crash" class="crash" hidden>
+  <p data-i18n="crashOld">The last session did not end cleanly.</p>
+  <button type="button" id="crash-dl" data-i18n="crashDownload">Download crash report</button>
+  <button type="button" id="crash-dismiss" data-i18n="crashDismiss">Dismiss</button>
+</div>
+<noscript><p>This tour needs JavaScript for the pictures and the calculations.</p></noscript>
+</body>
+</html>
