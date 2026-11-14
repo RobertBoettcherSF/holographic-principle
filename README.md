@@ -16,7 +16,7 @@ sudo apt install rpm2cpio cpio lld libedit2
 ./tools/get-toolchain.sh
 gprbuild -P tests/smoke.gpr && ./obj/native/smoke
 ./build.sh
-node --test tests/*.test.mjs
+npm test
 ```
 
 `build.sh` writes `ada.js`, `index.html` and `tour.html` at the repository root. The visible stamp and `version.txt` are the same line. Build times are Europe/Berlin.

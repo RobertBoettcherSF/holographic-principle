@@ -53,6 +53,7 @@ await page.waitForFunction(() => {
   return b && b.textContent.trim().length > 0;
 });
 
+await page.$eval("#card-sheet", el => el.scrollIntoView({block: "center"}));
 const disk = await page.$("#card-sheet canvas");
 const db = await disk.boundingBox();
 await page.mouse.move(db.x + db.width * 0.62, db.y + db.height * 0.42);
@@ -65,6 +66,7 @@ await page.mouse.move(db.x + db.width * 0.38, db.y + db.height * 0.34, {steps: 4
 await page.mouse.up();
 await shot("#card-sheet", "card-3-disk.png");
 
+await page.$eval("#card-path", el => el.scrollIntoView({block: "center"}));
 const path = await page.$("#card-path canvas");
 const pb = await path.boundingBox();
 const cx = pb.x + pb.width / 2, cy = pb.y + pb.height / 2;
@@ -82,6 +84,7 @@ await page.waitForFunction(() => /rₛ|2GM/.test(document.querySelector("#card-s
 await page.click("#card-secret .controls button:nth-of-type(3)");
 await page.waitForFunction(() => document.querySelector("#card-secret .answer").textContent.trim().startsWith("0"));
 await shot("#card-secret", "card-5-erased.png");
+await page.$eval("#card-secret", el => el.scrollIntoView({block: "center"}));
 const secret = await page.$("#card-secret canvas");
 const sb = await secret.boundingBox();
 await page.mouse.click(sb.x + sb.width * 0.5, sb.y + 28);
