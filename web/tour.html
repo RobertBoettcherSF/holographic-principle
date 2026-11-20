@@ -6,8 +6,8 @@
 <meta name="description" content="Five stops on the holographic principle: black-hole entropy, area versus volume, a Poincaré disk, Ryu-Takayanagi geodesics and the HaPPY code.">
 <title>Holo Tour</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='8' fill='%2302060a' stroke='%23e5ff70' stroke-width='2'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="styles.css?v=1">
-<script type="module" src="tour.js?v=1"></script>
+<link rel="stylesheet" href="styles.css?v=2">
+<script type="module" src="tour.js?v=2"></script>
 </head>
 <body>
 <a class="skip" href="#main" data-i18n="skip">Skip to content</a>
@@ -23,6 +23,7 @@
       <button type="button" data-language="es" aria-pressed="false"><span aria-hidden="true">🇪🇸</span> <span class="language-name">Spanish</span></button>
       <button type="button" data-language="fr" aria-pressed="false"><span aria-hidden="true">🇫🇷</span> <span class="language-name">French</span></button>
     </div>
+    <button type="button" id="guess-toggle" class="reset" aria-pressed="false">Guess first</button>
     <button type="button" id="sound-toggle" class="reset" aria-pressed="false">Sound off</button>
   </div>
 </header>
@@ -36,6 +37,8 @@
     <a href="#card-sheet" data-jump="sheet">3</a>
     <a href="#card-path" data-jump="path">4</a>
     <a href="#card-secret" data-jump="secret">5</a>
+    <a href="#card-evaporate" data-jump="evaporate">6</a>
+    <a href="#card-memory" data-jump="memory">7</a>
   </nav>
   <div id="cards"></div>
   <noscript><p>This tour needs JavaScript for the pictures and the calculations.</p></noscript>
@@ -44,6 +47,10 @@
   <span data-i18n="footer">Built for curiosity. Designed for understanding.</span>
   <span><span data-i18n="f9hint">F9 saves a feedback file</span> · <a href="index.html" data-i18n="replay">Replay the introduction</a> · <a href="https://github.com/RobertBoettcherSF/holographic-principle" data-i18n="repository">View the repository</a></span>
 </footer>
+<div id="gloss" class="gloss" hidden>
+  <canvas id="gloss-sketch" width="200" height="90" aria-hidden="true"></canvas>
+  <p id="gloss-text"></p>
+</div>
 <div id="crash" class="crash" hidden>
   <p data-i18n="crashOld">The last session did not end cleanly.</p>
   <button type="button" id="crash-dl" data-i18n="crashDownload">Download crash report</button>

@@ -144,31 +144,73 @@ begin
    HP.Cards.Run (4);
    Check_I ("reject coincident points", Integer (Outputs (1)), Err_Close);
 
-   --  HaPPY patterns: 0 none, 2 one boundary leg per tile, 3 two per tile,
-   --  4 the first two outer pentagons fully erased.
+   --  Three rings of the pentagon code. Counts follow the HaPPY layer recurrence.
    Inputs (0) := 1.0;
    Inputs (1) := 0.0;
    HP.Cards.Run (5);
-   Check_I ("happy tiles", Integer (Outputs (2)), 6);
-   Check_I ("happy boundary", Integer (Outputs (3)), 20);
-   Check_I ("happy none erased", Integer (Outputs (4)), 6);
+   Check_I ("happy tiles", Integer (Outputs (2)), 61);
+   Check_I ("happy boundary", Integer (Outputs (3)), 145);
+   Check_I ("happy all readable", Integer (Outputs (4)), 61);
+   Check_I ("layer totals", Integer (Outputs (12) + Outputs (13) + Outputs (14) + Outputs (15)), 61);
 
-   Inputs (1) := 2.0;
+   Inputs (0) := 2.0;
+   Inputs (1) := 20.0;
    HP.Cards.Run (5);
-   Check_I ("happy one each", Integer (Outputs (4)), 6);
+   Check_I ("arc 20 still has the centre", Integer (Outputs (10)), 1);
+   Check_I ("arc 20 readable", Integer (Outputs (4)), 54);
+   Check_I ("arc 20 outer ring has shrunk", Integer (Outputs (8)), 35);
+   if Integer (Outputs (6)) /= 5 or else Integer (Outputs (7)) /= 13 then
+      Errors := Errors + 1;
+      Put_Line ("FAIL arc 20 did not keep the inner rings");
+   end if;
 
-   Inputs (1) := 3.0;
+   Inputs (1) := 50.0;
    HP.Cards.Run (5);
-   Check_I ("happy two each", Integer (Outputs (4)), 0);
+   Check_I ("arc 50 centre gone", Integer (Outputs (10)), 0);
+   Check_I ("arc 50 some rings remain", Integer (Outputs (4)), 37);
 
-   Inputs (1) := 4.0;
+   Inputs (0) := 1.0;
+   Inputs (1) := 5.0;
    HP.Cards.Run (5);
-   Check_I ("happy two petals", Integer (Outputs (4)), 4);
-   Check_I ("center still readable", Geom_I (100), 1);
+   Check_I ("greedy stuck readable", Integer (Outputs (4)), 0);
+   Check_I ("greedy stuck flag", Integer (Outputs (11)), 1);
+   Check_I ("greedy stuck keeps some rim", Integer (Outputs (9)), 80);
 
    Inputs (1) := 1.0;
    HP.Cards.Run (5);
    Check_I ("happy all erased", Integer (Outputs (4)), 0);
+   Check_I ("all erased is not the stuck case", Integer (Outputs (11)), 0);
+
+   Inputs (0) := Mass_Sun;
+   HP.Cards.Run (7);
+   Check_I ("hawking status", Integer (Outputs (0)), 1);
+   Check ("T sun", Outputs (3), 6.170260410964976e-8, 1.0e-9);
+   Check ("life sun years", Outputs (4), 2.095492313809034e67, 1.0e-9);
+   Check ("T mountain", Outputs (10), 1.2269006705940171e12, 1.0e-9);
+   Check ("life mountain years", Outputs (11), 2.6654365033152413e9, 1.0e-9);
+   if Outputs (11) >= Outputs (8) then
+      Errors := Errors + 1;
+      Put_Line ("FAIL mountain does not fade before the Sun");
+   end if;
+   Inputs (0) := 0.0;
+   HP.Cards.Run (7);
+   Check_I ("reject zero hawking mass", Integer (Outputs (1)), Err_Positive);
+
+   Inputs (0) := 0.0;
+   HP.Cards.Run (8);
+   Check_I ("box status", Integer (Outputs (0)), 1);
+   Check ("shoebox bek", Outputs (4), 3.5723533206363005e42, 1.0e-9);
+   Check ("shoebox holo", Outputs (5), 4.81049854995961e68, 1.0e-9);
+   Check_I ("shoebox tighter is Bekenstein", Integer (Outputs (10)), 1);
+   Inputs (0) := 2.0;
+   HP.Cards.Run (8);
+   Check ("universe bek", Outputs (4), 1.1788765958099792e123, 1.0e-8);
+   Check ("universe holo", Outputs (5), 2.328281298180451e123, 1.0e-8);
+   Inputs (0) := 3.0;
+   Inputs (1) := -1.0;
+   Inputs (2) := 1.0;
+   HP.Cards.Run (8);
+   Check_I ("reject negative box radius", Integer (Outputs (1)), Err_Positive);
 
    if Errors = 0 then
       Put_Line ("SMOKE PASS");

@@ -49,19 +49,36 @@ test("Poincaré disk and geodesic check", () => {
   assert.ok(Math.abs(outputs[6] - outputs[7]) / outputs[7] < 1e-3);
 });
 
-test("HaPPY greedy threshold", () => {
+test("HaPPY three rings shrink, then the greedy rule sticks", () => {
   inputs[0] = 1; inputs[1] = 0;
   e.hp_compute(5);
-  assert.equal(outputs[4], 6);
-  inputs[1] = 3;
+  assert.equal(outputs[2], 61);
+  assert.equal(outputs[3], 145);
+  assert.equal(outputs[4], 61);
+  inputs[0] = 2; inputs[1] = 20;
+  e.hp_compute(5);
+  assert.equal(outputs[10], 1);
+  assert.equal(outputs[8], 35);
+  inputs[1] = 50;
+  e.hp_compute(5);
+  assert.equal(outputs[10], 0);
+  assert.equal(outputs[4], 37);
+  inputs[0] = 1; inputs[1] = 5;
   e.hp_compute(5);
   assert.equal(outputs[4], 0);
-  inputs[1] = 4;
-  e.hp_compute(5);
-  assert.equal(outputs[4], 4);
-  assert.equal(geomI[100], 1);
+  assert.equal(outputs[11], 1);
+  assert.equal(outputs[9], 80);
+});
+
+test("Hawking lifetime and the Bekenstein ceiling", () => {
+  e.hp_compute(6);
+  inputs[0] = outputs[8];
+  e.hp_compute(7);
+  near(outputs[3], 6.170260410964976e-8);
+  near(outputs[4], 2.095492313809034e67);
+  assert.ok(outputs[11] < outputs[8]);
   inputs[0] = 0;
-  inputs[1] = (1 << 20) - 1;
-  e.hp_compute(5);
-  assert.equal(outputs[4], 0);
+  e.hp_compute(8);
+  assert.equal(outputs[10], 1);
+  assert.ok(outputs[4] < outputs[5]);
 });
