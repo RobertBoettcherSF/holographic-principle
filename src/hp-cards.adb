@@ -21,8 +21,13 @@ package body HP.Cards is
       Kind : Leg_Kind := Boundary;
       Ref  : Natural := 0;
    end record;
-   Happy_Legs : array (0 .. 5, 0 .. 4) of Leg;
+   Happy_Legs : array (0 .. Max_Tiles - 1, 0 .. 4) of Leg;
+   Happy_Layer : array (0 .. Max_Tiles - 1) of Natural := (others => 0);
    Happy_Boundary : Natural := 0;
+   Layer_Total : array (0 .. 3) of Natural := (others => 0);
+   Year_Seconds : constant F := 365.25 * 24.0 * 3600.0;
+   Mountain_Kg : constant F := 1.0E11;
+   Drive_Bits : constant F := 8.0E12;
 
    procedure Fail (Code : Integer) is
    begin
@@ -192,11 +197,13 @@ package body HP.Cards is
       if Happy_Ready then
          return;
       end if;
-      Build_Tiling (5, 4, 1, 0.99, Happy_Tiles, Happy_N);
-      for T in 0 .. 5 loop
+      --  Three rings of the {5,4} pentagon code: layers 0..3, 61 tensors.
+      Build_Tiling (5, 4, 3, 0.999, Happy_Tiles, Happy_N);
+      for T in 0 .. Happy_N - 1 loop
          for E in 0 .. 4 loop
             Happy_Legs (T, E) := (Boundary, 0);
          end loop;
+         Happy_Layer (T) := 0;
       end loop;
       for T in 0 .. Happy_N - 1 loop
          for E in 0 .. 4 loop
@@ -230,6 +237,38 @@ package body HP.Cards is
          end loop;
       end loop;
       Happy_Boundary := Bid;
+      --  Graph distance from the centre is the ring number.
+      for T in 0 .. Happy_N - 1 loop
+         Happy_Layer (T) := Happy_N;
+      end loop;
+      declare
+         Q : array (0 .. Max_Tiles - 1) of Natural;
+         Head : Natural := 0;
+         Tail : Natural := 1;
+         U : Natural;
+      begin
+         Happy_Layer (0) := 0;
+         Q (0) := 0;
+         while Head < Tail loop
+            U := Q (Head);
+            Head := Head + 1;
+            for E in 0 .. 4 loop
+               if Happy_Legs (U, E).Kind = Internal
+                 and then Happy_Layer (Happy_Legs (U, E).Ref) = Happy_N
+               then
+                  Happy_Layer (Happy_Legs (U, E).Ref) := Happy_Layer (U) + 1;
+                  Q (Tail) := Happy_Legs (U, E).Ref;
+                  Tail := Tail + 1;
+               end if;
+            end loop;
+         end loop;
+      end;
+      Layer_Total := (others => 0);
+      for T in 0 .. Happy_N - 1 loop
+         if Happy_Layer (T) <= 3 then
+            Layer_Total (Happy_Layer (T)) := Layer_Total (Happy_Layer (T)) + 1;
+         end if;
+      end loop;
       Happy_Ready := True;
    end Ensure_Happy;
 
@@ -696,32 +735,86 @@ package body HP.Cards is
    end Do_Geodesic;
 
    procedure Do_Happy is
-      Erased : array (0 .. 31) of Boolean := (others => False);
-      Known  : array (0 .. 5) of Boolean := (others => False);
+      Erased : array (0 .. 255) of Boolean := (others => False);
+      Known  : array (0 .. Max_Tiles - 1) of Boolean := (others => False);
       Changed : Boolean;
-      Known_Legs, Read_Count : Natural;
+      Known_Legs, Read_Count, Erased_Count : Natural;
       Slot : Natural := 0;
-      Samples : constant := 6;
+      Samples : constant := 4;
       Pattern : Integer;
+      L_Read : array (0 .. 3) of Natural := (others => 0);
    begin
       Clear_Outputs;
       Ensure_Happy;
-      if Inputs (0) >= 0.5 then
+      if Inputs (0) >= 1.5 then
+         --  Connected arc: erase the first N rim legs in angle order.
+         declare
+            Ids : array (0 .. 255) of Natural;
+            Ang : array (0 .. 255) of F;
+            N : Natural := 0;
+            Want : Integer;
+         begin
+            for T in 0 .. Happy_N - 1 loop
+               for E in 0 .. 4 loop
+                  if Happy_Legs (T, E).Kind = Boundary then
+                     declare
+                        Mid : constant C :=
+                          Scale (0.5, Add (Happy_Tiles (T) (E),
+                                           Happy_Tiles (T) ((E + 1) mod 5)));
+                     begin
+                        Ids (N) := Happy_Legs (T, E).Ref;
+                        Ang (N) := Atan2 (Mid.Y, Mid.X);
+                        N := N + 1;
+                     end;
+                  end if;
+               end loop;
+            end loop;
+            for I in 1 .. N - 1 loop
+               declare
+                  Key_Id : constant Natural := Ids (I);
+                  Key_Ang : constant F := Ang (I);
+                  J : Natural := I;
+               begin
+                  while J > 0 and then Ang (J - 1) > Key_Ang loop
+                     Ids (J) := Ids (J - 1);
+                     Ang (J) := Ang (J - 1);
+                     J := J - 1;
+                  end loop;
+                  Ids (J) := Key_Id;
+                  Ang (J) := Key_Ang;
+               end;
+            end loop;
+            if not Finite (Inputs (1)) then
+               Want := 0;
+            elsif Inputs (1) <= 0.0 then
+               Want := 0;
+            else
+               Want := Integer (Inputs (1));
+            end if;
+            if Want > Integer (N) then
+               Want := Integer (N);
+            end if;
+            for I in 0 .. Want - 1 loop
+               Erased (Ids (I)) := True;
+            end loop;
+         end;
+      elsif Inputs (0) >= 0.5 then
          Pattern := Integer (Inputs (1));
          case Pattern is
             when 1 =>
                for B in 0 .. Happy_Boundary - 1 loop
                   Erased (B) := True;
                end loop;
-            when 2 | 3 =>
+            when 5 =>
+               --  Two rim legs on every outer pentagon. Each one then sees
+               --  fewer than three sides, so the greedy rule never starts.
                declare
-                  Taken : array (0 .. 5) of Natural := (others => 0);
-                  Need  : constant Natural := (if Pattern = 2 then 1 else 2);
+                  Taken : array (0 .. Max_Tiles - 1) of Natural := (others => 0);
                begin
                   for T in 0 .. Happy_N - 1 loop
                      for E in 0 .. 4 loop
                         if Happy_Legs (T, E).Kind = Boundary
-                          and then Taken (T) < Need
+                          and then Taken (T) < 2
                         then
                            Erased (Happy_Legs (T, E).Ref) := True;
                            Taken (T) := Taken (T) + 1;
@@ -729,36 +822,9 @@ package body HP.Cards is
                      end loop;
                   end loop;
                end;
-            when 4 =>
-               declare
-                  Wiped : Natural := 0;
-               begin
-                  for T in 0 .. Happy_N - 1 loop
-                     exit when Wiped = 2;
-                     if Happy_Legs (T, 0).Kind = Boundary
-                       or else Happy_Legs (T, 1).Kind = Boundary
-                     then
-                        for E in 0 .. 4 loop
-                           if Happy_Legs (T, E).Kind = Boundary then
-                              Erased (Happy_Legs (T, E).Ref) := True;
-                           end if;
-                        end loop;
-                        Wiped := Wiped + 1;
-                     end if;
-                  end loop;
-               end;
             when others =>
                null;
          end case;
-      else
-         declare
-            Mask : Integer := Integer (Inputs (1));
-         begin
-            for B in 0 .. Happy_Boundary - 1 loop
-               Erased (B) := Mask mod 2 /= 0;
-               Mask := Mask / 2;
-            end loop;
-         end;
       end if;
 
       Changed := True;
@@ -785,15 +851,34 @@ package body HP.Cards is
       end loop;
 
       Read_Count := 0;
+      Erased_Count := 0;
+      for B in 0 .. Happy_Boundary - 1 loop
+         if Erased (B) then
+            Erased_Count := Erased_Count + 1;
+         end if;
+      end loop;
       for T in 0 .. Happy_N - 1 loop
-         if Known (T) then
+         if Known (T) and then Happy_Layer (T) <= 3 then
             Read_Count := Read_Count + 1;
+            L_Read (Happy_Layer (T)) := L_Read (Happy_Layer (T)) + 1;
          end if;
       end loop;
       Ok;
       Outputs (2) := F (Happy_N);
       Outputs (3) := F (Happy_Boundary);
       Outputs (4) := F (Read_Count);
+      Outputs (5) := F (L_Read (0));
+      Outputs (6) := F (L_Read (1));
+      Outputs (7) := F (L_Read (2));
+      Outputs (8) := F (L_Read (3));
+      Outputs (9) := F (Erased_Count);
+      Outputs (10) := (if Happy_N > 0 and then Known (0) then 1.0 else 0.0);
+      Outputs (11) := (if Read_Count = 0 and then Erased_Count > 0
+                         and then Erased_Count < Happy_Boundary then 1.0 else 0.0);
+      Outputs (12) := F (Layer_Total (0));
+      Outputs (13) := F (Layer_Total (1));
+      Outputs (14) := F (Layer_Total (2));
+      Outputs (15) := F (Layer_Total (3));
       Geom_I (0) := Happy_N;
       Geom_I (1) := Happy_Boundary;
       Geom_I (2) := Read_Count;
@@ -806,7 +891,8 @@ package body HP.Cards is
                Happy_Tiles (T) ((E + 1) mod 5),
                Slot, Samples);
          end loop;
-         Geom_I (100 + T) := (if Known (T) then 1 else 0);
+         Geom_I (400 + T) := (if Known (T) then 1 else 0);
+         Geom_I (300 + T) := Happy_Layer (T);
       end loop;
       Geom_I (5) := Slot;
       Geom_I (6) := Slot;
@@ -823,8 +909,8 @@ package body HP.Cards is
                begin
                   Geom (Pos) := Mid.X;
                   Geom (Pos + 1) := Mid.Y;
-                  Geom_I (20 + Bid) := (if Erased (Bid) then 1 else 0);
-                  Geom_I (60 + Bid) := T;
+                  Geom_I (600 + Bid) := (if Erased (Bid) then 1 else 0);
+                  Geom_I (800 + Bid) := T;
                end;
             end if;
          end loop;
@@ -845,6 +931,119 @@ package body HP.Cards is
       end loop;
    end Do_Happy;
 
+   function Hawking_T (Mass : F) return F is
+     (Hbar * C_Light * C_Light * C_Light / (8.0 * Pi * G_Newton * Mass * K_B));
+
+   function Hawking_Seconds (Mass : F) return F is
+     (5120.0 * Pi * G_Newton * G_Newton * Mass * Mass * Mass
+        / (Hbar * C_Light * C_Light * C_Light * C_Light));
+
+   procedure Store_Hawking (Mass : F; Slot : Natural) is
+   begin
+      Outputs (Slot) := Mass;
+      Outputs (Slot + 1) := Hawking_T (Mass);
+      Outputs (Slot + 2) := Hawking_Seconds (Mass) / Year_Seconds;
+   end Store_Hawking;
+
+   procedure Do_Hawking is
+      Mass : constant F := Inputs (0);
+   begin
+      Clear_Outputs;
+      Store_Hawking (Mass_Sun, 6);
+      Store_Hawking (Mountain_Kg, 9);
+      if not Finite (Mass) then
+         Fail (Err_Missing);
+         return;
+      end if;
+      if Mass <= 0.0 then
+         Fail (Err_Positive);
+         return;
+      end if;
+      if Mass > 1.0E40 or else not Finite (Hawking_T (Mass))
+        or else not Finite (Hawking_Seconds (Mass))
+      then
+         Fail (Err_Range);
+         return;
+      end if;
+      Ok;
+      Store_Hawking (Mass, 2);
+      Store_Hawking (Mass_Sun, 6);
+      Store_Hawking (Mountain_Kg, 9);
+      Ok;
+   end Do_Hawking;
+
+   --  Round everyday sizes, not CODATA. The formulas use the CODATA constants.
+   procedure Box_Of (Radius, Mass : F; Bek, Holo : out F) is
+      Lp2 : constant F := Planck_Length_Sq;
+   begin
+      Bek := 2.0 * Pi * Radius * Mass * C_Light / Hbar;
+      Holo := Pi * Radius * Radius / Lp2;
+   end Box_Of;
+
+   procedure Store_Box (Radius, Mass : F; Slot : Natural) is
+      Bek, Holo : F;
+   begin
+      Box_Of (Radius, Mass, Bek, Holo);
+      Outputs (Slot) := Radius;
+      Outputs (Slot + 1) := Mass;
+      Outputs (Slot + 2) := Bek;
+      Outputs (Slot + 3) := Holo;
+   end Store_Box;
+
+   procedure Do_Box is
+      Which : constant Integer := Integer (Inputs (0));
+      Radius, Mass, Bek, Holo : F;
+   begin
+      Clear_Outputs;
+      Store_Box (0.2, 1.0, 16);
+      Store_Box (0.08, 1.4, 20);
+      Store_Box (4.4E26, 1.5E53, 24);
+      case Which is
+         when 0 =>
+            Radius := 0.2;
+            Mass := 1.0;
+         when 1 =>
+            Radius := 0.08;
+            Mass := 1.4;
+         when 2 =>
+            Radius := 4.4E26;
+            Mass := 1.5E53;
+         when 3 =>
+            Radius := Inputs (1);
+            Mass := Inputs (2);
+         when others =>
+            Fail (Err_Range);
+            return;
+      end case;
+      if not Finite (Radius) or else not Finite (Mass) then
+         Fail (Err_Missing);
+         return;
+      end if;
+      if Radius <= 0.0 or else Mass <= 0.0 then
+         Fail (Err_Positive);
+         return;
+      end if;
+      Box_Of (Radius, Mass, Bek, Holo);
+      if not Finite (Bek) or else not Finite (Holo) then
+         Fail (Err_Range);
+         return;
+      end if;
+      Ok;
+      Outputs (2) := Radius;
+      Outputs (3) := Mass;
+      Outputs (4) := Bek;
+      Outputs (5) := Holo;
+      Outputs (6) := Bek / Ln2;
+      Outputs (7) := Holo / Ln2;
+      Outputs (8) := (Bek / Ln2) / Drive_Bits;
+      Outputs (9) := (Holo / Ln2) / Drive_Bits;
+      Outputs (10) := (if Bek <= Holo then 1.0 else 2.0);
+      Store_Box (0.2, 1.0, 16);
+      Store_Box (0.08, 1.4, 20);
+      Store_Box (4.4E26, 1.5E53, 24);
+      Ok;
+   end Do_Box;
+
    procedure Run (Card : Integer) is
    begin
       case Card is
@@ -855,6 +1054,8 @@ package body HP.Cards is
          when 4 => Do_Geodesic;
          when 5 => Do_Happy;
          when 6 => Do_Constants;
+         when 7 => Do_Hawking;
+         when 8 => Do_Box;
          when others => Fail (Err_Range);
       end case;
    end Run;

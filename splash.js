@@ -1,7 +1,7 @@
-import {VERSION, loadAda} from "./ada.js?v=1";
-import {t, translatePage, wireLanguages} from "./i18n.js?v=1";
-import {play, bindSoundButton} from "./sounds.js?v=1";
-import {startSession} from "./session.js?v=1";
+import {VERSION, loadAda} from "./ada.js?v=2";
+import {t, translatePage, wireLanguages} from "./i18n.js?v=2";
+import {play, bindSoundButton} from "./sounds.js?v=2";
+import {startSession} from "./session.js?v=2";
 
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const session = startSession({version: VERSION, details: () => ({page: "splash", reduced})});

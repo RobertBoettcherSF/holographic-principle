@@ -27,6 +27,8 @@ npm test
 2. **Area beats volume** — sugar cubes against stickers.
 3. **A 3D world drawn on a 2D sheet** — a pannable Poincaré disk and the boundary arc that encodes a bulk point.
 4. **Shortest paths measure connection** — a bulk geodesic and the Ryu–Takayanagi entropy, checked against `(c/3) ln(L/ε)`.
-5. **A secret shared so it can survive** — the first ring of the HaPPY pentagon code and the greedy entanglement wedge.
+5. **A secret shared so it can survive** — three rings of the HaPPY pentagon code. A connected rub-out shrinks the readable region ring by ring. Spreading the rub-outs leaves rim pieces in place but the greedy rule gets stuck.
+6. **Black holes slowly evaporate** — Hawking temperature and the 5120π lifetime. A solar-mass hole lasts about 10^67 years; a 10^11 kg mountain glows and fades in a few billion years.
+7. **How much can a box remember?** — the Bekenstein bound and the holographic bound for a shoebox, a brain and the observable universe, counted in 1 TB drives.
 
 English (UK) is the default. German, Spanish and French translate the interface. Sound can be switched off; that choice is remembered. F9 downloads a feedback file.

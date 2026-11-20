@@ -53,6 +53,13 @@ footer a{color:var(--blue)}
 .crash{position:fixed;left:12px;bottom:12px;z-index:7;max-width:420px;background:#3a2023;border:1px solid #ff9f95;border-radius:10px;padding:12px 14px}
 .crash p{margin:0 0 8px}
 .crash button{margin-right:8px}
+.term{background:none;border:0;border-bottom:1px dotted var(--accent);color:inherit;padding:0;cursor:pointer;font:inherit}
+.gloss{position:fixed;z-index:8;width:220px;background:#111f2c;border:1px solid var(--accent);border-radius:12px;padding:10px;box-shadow:0 12px 40px #000a}
+.gloss p{margin:8px 0 0;font-size:14px}
+.guess{border:1px dashed #40576c;border-radius:10px;padding:10px 12px;margin-top:12px}
+.sources{margin-top:10px}
+.sources summary{cursor:pointer;color:var(--blue)}
+.sources a{color:var(--blue)}
 body.splash-body{overflow:hidden;min-height:100vh}
 #sky{position:fixed;inset:0;width:100vw;height:100vh;display:block}
 .splash-top{position:fixed;top:0;left:0;right:0;z-index:2;display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;padding:clamp(16px,4vw,40px);pointer-events:none}

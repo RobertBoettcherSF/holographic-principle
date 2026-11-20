@@ -1,4 +1,4 @@
-import {t} from "./i18n.js?v=1";
+import {t} from "./i18n.js?v=2";
 
 const KEY = "hp.sound";
 export const SOUND_EVENTS = ["input", "result", "language", "reset", "click"];
